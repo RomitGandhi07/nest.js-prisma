@@ -1,0 +1,113 @@
+module
+	App/Global
+	Feature module
+	Supporting modules
+
+	@Module()
+
+
+	nest g module <modulename>
+
+Contollers: Responsible for handling request response
+	@Controller()
+
+	nest g controller <modulename>	
+
+Services: Contains actual business logic
+	@Injectable()
+
+	nest g service <modulename> 
+
+
+In the @Module function call accepting an object which contains
+	imports  // Load dependent modules
+	providers // Services
+	controllers // Controllers
+	exports  // Normally exports services so, it can be used in other modules
+
+
+
+Dependency injection
+---
+
+in the controller file in the constructor can directly write like this 
+
+constructor(private authService: AuthService) {}
+
+Means no need to instantiate AuthService and use it. Directly accept private authService as an argument and now can use like this.authService.<>
+
+
+Also private authService is shorthand for declaring authService in the class and in the constructor define like this.authService = authService
+
+
+To Define route
+--------------
+There is controller file where we define routes
+
+@Controller('auth')
+
+@Post('signin')
+  signin() {
+    return this.authService.signin();
+  }
+
+
+So, route will be /auth/signin
+
+
+To access body
+-------------
+dto means data transfer object
+
+
+@Post('signup')
+  signup(@Body() dto: AuthDto) {
+    console.log(dto.email, dto.password);
+    return this.authService.signup();
+  }
+
+
+where AuthDto is interface
+
+
+We can also access request like express using @Req() annotation but it's not recommended as it should be generic
+
+Pipes
+----
+Pipes normally has 2 use cases transformation and validation
+
+There are built-in pipes like
+
+ParseIntPipe
+
+@Get(':id')
+async findOne(@Param('id', ParseIntPipe) id: number) {
+  return this.catsService.findOne(id);
+}
+
+
+
+Validation and transformation
+-----------------------------
+Need to install class-validators and class-transformer package
+
+
+Then change dto interface to class like this
+
+export class AuthDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+}
+
+And in the main.ts file before listens to port, define this app.useGlobalPipes(new ValidationPipe());
+
+new ValidationPipe({
+      whitelist: true,
+    }),
+
+whitelist to true means only the fields specified in the dto will be passed in the controller, no other fields will be there like suppose API is accepting email and password and if someone passed id then it will be ignored
